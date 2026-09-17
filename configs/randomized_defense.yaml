@@ -1,0 +1,13 @@
+seed: 20260910
+random_times: true
+random_phases: false
+time_distribution: uniform
+phase_distribution: uniform
+challenge_granularity: setting
+actuation_window_seconds: 2.0e-6
+latency_sweep_seconds: [0.0, 1.0e-6, 2.0e-6, 3.0e-6, 10.0e-6]
+attack:
+  kind: spoof
+  profile: A1
+  target_displacement_tesla: 0.1e-6
+

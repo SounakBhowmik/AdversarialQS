@@ -1,0 +1,9 @@
+seed: 20260910
+attack:
+  kind: phase
+  profile: A1
+  pulse: analysis
+  phase_radians: 0.03
+phase_sweep_radians: [0.001, 0.003, 0.01, 0.03, 0.1]
+target_sweep_tesla: [0.025e-6, 0.05e-6, 0.1e-6, 0.2e-6]
+

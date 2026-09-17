@@ -1,0 +1,13 @@
+seed: 20260910
+field_min_tesla: 0.0
+field_max_tesla: 2.0e-6
+sensing_times_seconds: [5.0e-6, 10.0e-6, 20.0e-6, 40.0e-6, 60.0e-6]
+analysis_phases_radians: [0.0, 1.5707963267948966]
+shots_per_setting: 1000
+sensor:
+  t2_star_seconds: 100.0e-6
+  dephasing_exponent: 1.0
+  readout_error: 0.10
+attack:
+  kind: none
+
