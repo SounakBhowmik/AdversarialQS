@@ -5,10 +5,7 @@ Positive B is a static field along the sensing axis, expressed relative to the
 chosen rotating-frame reference. Hyperfine levels and the unused spin-1 level
 are omitted. We set H/ℏ in radians/second; ℏ therefore cancels from the propagator.
 
-\[
-\gamma=2\pi(28.025\times10^9)\;\mathrm{rad\,s^{-1}\,T^{-1}},
-\quad U_B(t)=\exp[-i(\gamma B+\delta\omega)t\sigma_z/2].
-\]
+$\gamma=2\pi(28.025\times10^9)\;\mathrm{rad\,s^{-1}\,T^{-1}}, \quad U_B(t)=\exp[-i(\gamma B+\delta\omega)t\sigma_z/2].$
 
 The numerical constant is declared once. Converting a frequency specified in Hz
 requires multiplying by 2π before passing `microwave_detuning_rad_per_second`.
@@ -22,10 +19,10 @@ Preparation `R_y(π/2)` transforms |0⟩ to |+x⟩. Let preparation phase be β 
 analysis phase α. The preparation rotation axis is (−sin β, cos β, 0), so after
 free precession and pure dephasing the Bloch vector is
 
-\[
+$
 r=(C(t)\cos(\gamma Bt+\beta),\;C(t)\sin(\gamma Bt+\beta),\;0),
 \qquad C(t)=e^{-(t/T_2^*)^p}.
-\]
+$
 
 The analysis axis `(sin α, −cos α, 0)` maps measurement of
 `X cos α + Y sin α` to Z. Thus the ideal-zero probability is
