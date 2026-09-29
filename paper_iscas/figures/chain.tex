@@ -1,31 +1,32 @@
-% Native TikZ: hardware control chain, attack point, and reference path.
+% Native TikZ (vector): hardware control chain, attack point, and reference path.
 \begin{tikzpicture}[
-  blk/.style={draw,rounded corners=1.5pt,align=center,font=\scriptsize,
-              minimum height=0.78cm,text width=1.28cm,inner sep=1.5pt,fill=white},
-  atk/.style={blk,draw=red!70!black,fill=red!5},
-  flow/.style={-{Latex[length=1.6mm]},semithick},
+  blk/.style={draw,thick,rounded corners=1.5pt,align=center,font=\footnotesize,
+              minimum height=0.82cm,text width=1.5cm,inner sep=1.5pt,fill=white},
+  atk/.style={blk,draw=red!75!black,fill=red!6,text=red!60!black},
+  flow/.style={-{Latex[length=1.8mm]},thick},
   meta/.style={flow,dashed,blue!65!black},
+  lbl/.style={font=\scriptsize},
   x=1cm,y=1cm]
 \node[blk] (clk) at (0,0) {10\,MHz\\clock};
-\node[blk] (syn) at (1.72,0) {MW synth.\\+ AWG};
-\node[blk] (nv) at (3.44,0) {NV spin +\\optical readout};
-\node[blk] (est) at (5.16,0) {MLE $\widehat B$\\NLL verifier};
-\node[blk] (dec) at (6.88,0) {Decision\\output $Y$};
-\node[atk] (atk) at (0.86,1.25) {Attacker:\\$\delta\omega$ or $\delta\phi$};
-\node[blk] (sch) at (3.44,1.25) {Trusted\\scheduler};
-\node[blk] (fld) at (3.44,-1.3) {Field $B$};
-\node[blk] (ref) at (5.16,-1.3) {Reference\\sensor $R$};
+\node[blk] (syn) at (1.78,0) {MW synth.\\+ AWG};
+\node[blk] (nv) at (3.56,0) {NV spin +\\readout};
+\node[blk] (est) at (5.34,0) {Estimator\\+ verifier};
+\node[blk] (dec) at (7.12,0) {Decision\\output $Y$};
+\node[atk] (atk) at (0.89,1.4) {Attacker:\\$\delta\omega$ or $\delta\phi$};
+\node[blk] (sch) at (3.56,1.4) {Trusted\\scheduler};
+\node[blk] (fld) at (3.56,-1.45) {Field $B$};
+\node[blk] (ref) at (5.34,-1.45) {Reference\\sensor $R$};
 \draw[flow] (clk) -- (syn);
 \draw[flow] (syn) -- (nv);
 \draw[flow] (nv) -- (est);
 \draw[flow] (est) -- (dec);
 \draw[flow] (sch) -- (syn);
 \draw[meta] (sch) -| (est);
-\node[font=\tiny,text=blue!65!black,anchor=west] at (5.2,0.85) {command log};
-\draw[flow,red!70!black] (atk) -- (syn);
+\node[lbl,text=blue!65!black,anchor=west] at (5.4,0.95) {command log};
+\draw[flow,red!75!black] (atk) -- (syn);
 \draw[flow] (fld) -- (nv);
 \draw[flow] (fld) -- (ref);
 \draw[flow] (ref) -| (dec);
-\draw[flow,dashed,red!70!black] (clk.south) -- (0,-2.05)
-  -| node[pos=0.3,below,font=\tiny]{shared clock breaks reference isolation} (ref.south);
+\draw[flow,dashed,red!75!black] (clk.south) -- (0,-2.35)
+  -| node[pos=0.3,below,lbl,text=red!60!black]{shared clock breaks reference isolation} (ref.south);
 \end{tikzpicture}
