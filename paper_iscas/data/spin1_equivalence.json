@@ -1,0 +1,27 @@
+{
+  "max_population_difference": 0.0004810567774470309,
+  "median_spoof_signal": 0.033529797771590875,
+  "shot_noise_1000": 0.015811388300841896,
+  "model": "NV spin-1 x 14N spin-1, lab frame, finite pulses, no RWA",
+  "rabi_hz": 10000000.0,
+  "pulse_seconds": 2.5e-08,
+  "spoof_tesla": 1e-07,
+  "cases_per_bias": 8,
+  "summary": [
+    {
+      "bias_field_tesla": 0.005,
+      "max_population_difference": 0.0004810567774470309,
+      "median_spoof_signal": 0.03548552721739845
+    },
+    {
+      "bias_field_tesla": 0.01,
+      "max_population_difference": 0.00011098357209493592,
+      "median_spoof_signal": 0.033529797771590875
+    },
+    {
+      "bias_field_tesla": 0.02,
+      "max_population_difference": 0.00031930669520552346,
+      "median_spoof_signal": 0.03167202061184976
+    }
+  ]
+}
