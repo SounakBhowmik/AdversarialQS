@@ -26,6 +26,10 @@ Status: S = supported, P = partially supported (scope stated), X = not claimable
 | C16 | Inverse-variance fusion: clean RMSE `\ObsIVWClean` nT but `\ObsIVWAttack`% attacked harm | `tables/fusion_replay.tex` (post-hoc replay) | S (post hoc) |
 | C17 | Averaging `\TheoryAvgReadings` independent reference readings gives sigma `\TheoryAvgSigma` nT, floor `\TheoryAvgFloor`% | model | P (assumes independent reference errors, no 1/f) |
 | C18 | Clean false alarms `\CleanAlarmRate`% [`\CleanAlarmCI`]; genuine field shift alarms `\GenuineAlarmCount` of `\TotalN`; readout drift raises alarms to `\MismatchAlarmRate`% | results_values | S |
+| C19 | sigma_R = 5 nT reference removes fallback harm (observed 0.00% [0.00, 0.00]) | `tables/theory_prediction.tex` row sigma_R=5 | S |
+| C20 | Blind window at sigma_R = 20 nT spans 25 to `\TheoryBlindUpper` nT | `theory_values.tex` | S (model) |
+| C21 | Residual detectable only after >= `\DetectSequencesNominal` sequences at 10 mT (`\DetectSequencesWorst` at 5 mT), ideal matched test, 50% power, alpha 1% | `scripts/iscas_values.py` from `data/spin1_equivalence.json` | P (max over 8 sampled settings; assumes residual stays at that level) |
+| C22 | Countermeasure hardware costs (Table III) | design consequences of Sections III-V; no external specs cited | S (qualitative) |
 | X1 | Any hardware / experimental NV result | none | X: simulation only, must be stated |
 | X2 | Dual-transition sensing is secure | algebraic bound only | X: state as capability bound + future work |
 | X3 | "Pre-registered" in the external sense | local timestamped freeze | X: say "frozen, timestamped protocol" |
