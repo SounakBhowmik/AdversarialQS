@@ -1,4 +1,4 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[conference,9pt]{IEEEtran}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs,array}
 \usepackage{graphicx}
@@ -14,7 +14,7 @@
 \newcommand{\Bhat}{\widehat{B}}
 \newcommand{\Ttwo}{T_2^{\ast}}
 
-% Generated from the frozen confirmation and post-hoc analyses; never edit by hand.
+% Generated from the frozen confirmation run and the post-hoc analyses; never edit by hand.
 \input{results_values.tex}
 \input{theory_values.tex}
 \input{iscas_values.tex}
@@ -35,17 +35,18 @@ Detection Limits and Reference-Sensor Design Rules}
 Diamond magnetometers based on nitrogen-vacancy centers are moving from the laboratory to field
 applications such as magnetic anomaly navigation, where a wrong field estimate becomes a wrong
 position. The quantum sensor is hard to reach remotely, but its classical microwave control
-chain is not. We show that an attacker who offsets the microwave drive frequency by less than
-one part per million reproduces the photon statistics of a genuine field shift for any Ramsey
-interrogation schedule, so the sensor cannot verify its own output. Secret interrogation timing
-stops precomputed phase attacks but not frequency offsets, and driving both spin transitions
-analytically reduces a clock error's bias roughly tenfold. We then analyze the common defense of falling
-back to an auxiliary reference sensor on alarm. Under attack, the rate of harmful fallback outputs cannot fall below
-the reference's own error rate, and a closed-form design equation predicts a blind window of small
-spoofs that pass unnoticed, which fixes how precise the reference must be. In a simulation study with 30
-independently seeded pipelines and a protocol fixed before the run, the equation matches all
-eight tested reference conditions within one percentage point, and a reference that shares the primary sensor's clock releases a harmful
-estimate on almost every attack.
+chain is not. We ask whether the sensor can detect manipulation of its own drive, whether an auxiliary reference
+sensor can restore a correct estimate, and which hardware choices decide the outcome. Offsetting the microwave drive frequency by less than one part
+per million reproduces the photon statistics of a genuine field change for any Ramsey
+interrogation schedule, so the sensor cannot verify its own output; secret interrogation timing
+stops only precomputed phase attacks, and driving both spin transitions analytically reduces a clock
+error's bias tenfold. Falling back to a reference sensor on
+alarm cannot push the rate of harmful outputs below the reference's own error rate, and a
+closed-form design equation predicts a blind window of small spoofs that pass unnoticed, which
+fixes how precise the reference must be. In a simulation study with 30 independently seeded
+pipelines and a protocol fixed before the run, the equation matches all eight tested reference
+conditions within one percentage point, and a reference that shares the primary sensor's clock
+releases a harmful estimate on almost every attack.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -60,43 +61,40 @@ Nitrogen-vacancy (NV) magnetometers combine high sensitivity with room-temperatu
 which makes them candidates for field deployment~\cite{barry2020sensitivity}. One such
 application is magnetic anomaly navigation, where the measured field is matched against a map to
 obtain position~\cite{canciani2016magnav}. In this setting a field error is a navigation error,
-and the integrity of the released estimate matters as much as its precision.
+so the integrity of the released estimate matters as much as its precision. The question is
+where an attacker could corrupt it.
 
-An NV Ramsey magnetometer reads the field as a phase that accumulates between two microwave
-pulses. The spin itself is difficult to reach remotely, but the phase reference is defined by
-classical electronics: a reference clock, a microwave synthesizer, an arbitrary waveform
-generator, and the cables between them. Signal injection into the analog front ends of sensors
-is well documented~\cite{kune2013ghost,shoukry2013abs}. For an NV sensor the required
-manipulation is small: a \SpoofOffsetkHz{}\,kHz drive offset, \SpoofOffsetPpm{}\,ppm of the
-\UpperLineGHz{}\,GHz transition, imitates a 100\,nT field change, and every tone derived from a
-shifted reference clock inherits the clock's fractional error, so pulling the usual 10\,MHz
-reference by about 10\,Hz, or rewriting the synthesizer's frequency setting, is enough.
+The weak point is not the quantum spin but the electronics that control it. An NV Ramsey magnetometer reads the field as a phase that accumulates between two microwave
+pulses. That phase is measured against a reference set by classical hardware: a reference clock, a
+microwave synthesizer, an arbitrary waveform generator (AWG), and the cables between them. Signal
+injection into the analog front ends of sensors is well documented~\cite{kune2013ghost,shoukry2013abs}.
+The manipulation an NV sensor needs is also small. A \SpoofOffsetkHz{}\,kHz drive offset,
+\SpoofOffsetPpm{}\,ppm of the \UpperLineGHz{}\,GHz transition, imitates a 100\,nT field change.
+Every tone derived from a shifted clock inherits the clock's fractional error, so pulling the
+usual 10\,MHz reference by about 10\,Hz, or rewriting the synthesizer's frequency setting, is
+enough. This raises a first question: can the sensor notice?
 
-Existing work does not address this threat. NV sensing research treats control errors as benign
+Existing defenses cannot answer this, because none was designed for an attacker on the drive. NV sensing research treats control errors as benign
 imperfections to be averaged out by robust or double-quantum
 sequences~\cite{oshnik2022robust,fang2013quantumbeats,hart2021dq}. Spoofing defenses for
 classical active sensors hide probing times from the attacker~\cite{shoukry2015pycra}, a strategy
-that fast attackers can bypass~\cite{shin2016sampling}. Anomaly detectors are usually judged by
-detection rate, although for a field estimate what matters is whether the released value is
-correct after an alarm. This paper asks: \emph{if an attacker manipulates the microwave drive of an
-NV Ramsey magnetometer, what can the defender detect, and how much of the field estimate can
-hardware architecture recover?} We make three contributions:
+that fast attackers can bypass~\cite{shin2016sampling}. A common engineering answer is to add a
+second, independent sensor and fall back to it when the two disagree. Such detectors are usually
+judged by how often they raise an alarm, yet for a field estimate what matters is whether the
+value released after the alarm is correct. We therefore ask: \emph{when an attacker manipulates the microwave drive, what can the defender
+detect, how much can a reference sensor recover, and which hardware choices decide the outcome?} We make
+three contributions:
 \begin{itemize}
-\item \textbf{Control-chain attack surface} (Section~\ref{sec:primary}). A drive-frequency offset
-is equivalent to a field shift in the photon statistics for any schedule. Secret timing defeats
-only precomputed phase attacks, and dual-transition driving analytically reduces the field bias of a
-1\,ppm clock error from about \ClockSingleBias{}\,nT to \ClockDualBias{}\,nT at a 10\,mT bias field.
-\item \textbf{Reference architecture and design equation} (Section~\ref{sec:reference}). Fallback
-to a reference sensor is bounded by the reference's own error. A closed-form equation predicts
-the residual harm and a blind window of small spoofs, and gives the reference noise needed to
-close it.
+\item \textbf{Control-chain attack surface} (Section~\ref{sec:primary}). A drive-frequency offset is invisible in the photon statistics; secret timing stops only
+precomputed phase attacks; dual-transition driving cancels common clock errors.
+\item \textbf{Reference architecture and design equation} (Section~\ref{sec:reference}). Fallback cannot beat the reference's own error rate under attack, and a closed-form equation
+predicts residual harm and sizes the reference.
 \item \textbf{Engineering evaluation and design rules} (Sections~\ref{sec:eval}--\ref{sec:rules}).
-A 30-pipeline simulation study quantifies attack success, clock sharing, and the precision,
-availability and cost of fallback, abstention and fusion, and maps each countermeasure to the
-hardware it requires.
+A 30-pipeline simulation confirms both results, prices a shared clock, and maps each
+countermeasure to the hardware it requires.
 \end{itemize}
 
-\section{Sensor Architecture and Threat Model}
+\section{Sensor Chain and Threat Model}
 \label{sec:threat}
 
 \begin{figure}[t]
@@ -109,167 +107,270 @@ path with the primary chain (red dashed path).}
 \label{fig:chain}
 \end{figure}
 
-Fig.~\ref{fig:chain} shows the architecture. A trusted scheduler chooses interrogation times
-$t_k$ and analysis phases $\phi_k$ and records them. The synthesizer and waveform generator turn
-these commands into pulses on a single NV transition, the optical readout returns photon counts,
-and the estimator computes a field estimate $\Bhat$ from the counts and the logged commands. A
-verifier scores held-out settings, and an optional reference sensor supplies an independent
-reading $R$ of the same field.
+The attacker's lever is the part of the chain that turns commands into microwave pulses
+(Fig.~\ref{fig:chain}). A trusted scheduler chooses the interrogation time $t_k$ and analysis
+phase $\phi_k$ of each measurement setting $k$ and records them in a protected command log. The
+synthesizer and AWG turn these commands into pulses on one NV transition, the optical readout
+returns photon counts, and the estimator computes a field estimate $\Bhat$ from the counts and
+the logged commands. A verifier scores settings held out from the fit, and an optional reference
+sensor supplies an independent reading $R$ of the same field. The decision stage combines them
+into the released output $Y$.
 
-The attacker acts between the scheduler and the spin: it can add a constant drive-frequency
-offset or change the analysis phase of each pulse, either from a precomputed table or with
-real-time knowledge of the schedule. It cannot observe the true field or the reference and
-cannot alter counts, logs, software or the reference path; an attacker with that access controls
-the output directly and must be stopped by data-path protection. A release $Y$ is
-\emph{harmful} if $|Y-B|>\epsilon_H=25$\,nT, and the attack targets a 100\,nT offset. We also
-report coverage (fraction of attempts with a released output) and root-mean-square error (RMSE)
-over released outputs.
+The attacker acts between the scheduler and the spin. It can add a constant offset to the drive
+frequency, or change the analysis phase of each pulse, either from a table prepared in advance or
+with real-time knowledge of the schedule. It cannot observe the true field or the reference, and
+it cannot alter counts, logs, software or the reference path. An attacker with that access would
+control the output directly, a threat that calls for data-path protection rather than the
+measurement-level checks studied here.
 
-\section{What the Primary Sensor Can Reveal}
+We judge a defense by what it releases, not by how often it alarms. A release $Y$ is
+\emph{harmful} if it misses the true field by more than $\epsilon_H=25$\,nT, and the attacker aims
+to shift the estimate by 100\,nT without an alarm. Both values are evaluation parameters, not
+operational standards. Because a defense can avoid harm trivially by releasing nothing, we also
+report \emph{coverage}, the fraction of attempts that release an output, and the root-mean-square
+error (RMSE) of released outputs. With these measures, we can ask what the primary sensor can
+detect on its own.
+
+\section{Can the Sensor Detect the Attack on Its Own?}
 \label{sec:primary}
 
-With preparation phase $\beta$, analysis phase $\phi$ and spin-drive detuning $\delta\omega$, the
-probability of reading $m_s=0$ after a Ramsey sequence is~\cite{degen2017quantum,rondin2014magnetometry}
+A Ramsey sequence turns the field into a phase and the phase into a spin population. The first microwave pulse creates a superposition, and the spin then precesses for a time $t$ at a
+rate set by its detuning from the drive. The second pulse, with analysis phase $\phi$, converts the
+accumulated phase into a population that the optical readout measures. The probability of reading
+the $m_s=0$ state is~\cite{degen2017quantum,rondin2014magnetometry}
 \begin{equation}
  p=\tfrac12\bigl[1+(1-2\eta)\,c\,e^{-t/\Ttwo}\cos\Theta\bigr],\quad
  \Theta=(\gamma B+\delta\omega)t+\beta-\phi,
  \label{eq:ramsey}
 \end{equation}
-with gyromagnetic ratio $\gamma$, contrast $c$, dephasing time $\Ttwo$ and symmetric readout error $\eta$; $N$ shots at each setting
-give binomial counts.
+where $\gamma$ is the gyromagnetic ratio, $B$ the field and $\delta\omega$ any detuning of the drive.
+The preparation phase is $\beta$, the contrast $c$, the dephasing time $\Ttwo$, and $\eta$ a symmetric
+readout error. Repeating each setting $N$ times gives binomially distributed photon counts.
 
-\textbf{Frequency offsets are invisible.} The field enters Eq.~\eqref{eq:ramsey} only through the
-net detuning $\gamma B+\delta\omega$. More generally, whenever the rotating-frame dynamics of the
-addressed transition depend on $B$ only through this detuning, lowering the drive frequency by
-$\gamma\Delta B$ produces exactly the count distribution of a field $B+\Delta B$, for any pulse
-shape and any schedule, including secret ones. No test on the primary data can then separate the
-two, and the attack is undetectable in the sense of~\cite{pasqualetti2013attack}. The condition
-neglects the unaddressed transition, counter-rotating terms and the $^{14}$N nuclear spin. A
-lab-frame simulation of the coupled electron-nuclear system with finite 25\,ns pulses and no
-rotating-wave approximation gives a largest population difference, over eight random settings per
-bias field, of
-\SpinNominalDiff{}$\times10^{-4}$ at a 10\,mT bias (\SpinMaxDiff{}$\times10^{-4}$ at 5\,mT),
-against a median spoof signal of \SpinSignal{} and a per-setting shot noise of \SpinShotNoise{}.
-If the residual stays at this level, even a detector that knew it exactly would need at least \DetectSequencesNominal{}
-sequences at 10\,mT (\DetectSequencesWorst{} at 5\,mT) to detect it with 50\% power at a 1\%
-false-alarm level, so the attack is undetectable within any single sequence.
+\textbf{Frequency offsets are undetectable.} Equation~\eqref{eq:ramsey} depends on the field and
+the drive only through their sum $\gamma B+\delta\omega$. An attacker who lowers the drive
+frequency by $\gamma\Delta B$ therefore produces exactly the count distribution of a field
+$B+\Delta B$. This holds for any pulse shape and any schedule, including secret ones, as long as
+the dynamics of the addressed transition depend on the field only through this detuning. Because
+the clean and attacked data have the same distribution, every test computed from the primary
+sensor's data raises an alarm with the same probability in both cases. In the terms of
+cyber-physical security, the attack is \emph{undetectable}: its measurements are exactly those of a
+legitimate state~\cite{pasqualetti2013attack}.
 
-\textbf{Secret timing stops precomputed phase attacks.} A phase actuator imitates the field shift
-only if it applies $\delta\phi_k=-\gamma\Delta B\,t_k$ with the true interrogation time. An
-attacker that must commit to a table built for the nominal times $t_{\rm nom}$ leaves a residual
-phase $\gamma\Delta B\,(t_{\rm nom}-t_k)$ that varies from setting to setting when the $t_k$ are
-drawn secretly, and a held-out likelihood test detects the resulting misfit. A frequency offset
-needs no such knowledge, so secret timing does not help against it.
+The equivalence is exact only in the two-level model, so we checked the neglected physics.
+Equation~\eqref{eq:ramsey} ignores the second, unaddressed NV transition, the counter-rotating part
+of the drive, and the $^{14}$N nuclear spin. We simulated the full coupled electron-nuclear system
+in the laboratory frame, with finite 25\,ns pulses and no rotating-wave approximation, at eight
+random settings per bias field. The largest difference between the populations under a real field
+change and under the equivalent drive offset was \SpinNominalDiff{}$\times10^{-4}$ at a 10\,mT bias
+field and \SpinMaxDiff{}$\times10^{-4}$ at 5\,mT. For comparison, the spoof itself changes the
+population by a median of \SpinSignal{}, and shot noise at 1000 shots is \SpinShotNoise{} per
+setting. If the residual stays at this level, even an ideal detector that knew it exactly would
+need at least \DetectSequencesNominal{} sequences at 10\,mT (\DetectSequencesWorst{} at 5\,mT) to
+detect it with 50\% probability at a 1\% false-alarm rate. The attack is therefore undetectable
+within any single sequence. Can the defender do better by hiding the schedule?
 
-\textbf{Dual-transition driving cancels common clock errors.} With transition frequencies
-$\omega_\pm=D\pm\gamma(B_0+B)$ and tone offsets $a_\pm$, the difference of the two measured
-detunings contains $2\gamma(B_0+B)-(a_+-a_-)$, so offsets common to both tones and drifts of the
-zero-field splitting $D$ cancel~\cite{fang2013quantumbeats,bauch2018ultralong,hart2021dq}. A
-fractional clock error $\epsilon$ scales both tones; at $\epsilon=1$\,ppm and $B_0=10$\,mT it
-biases a single-transition estimate by about \ClockSingleBias{}\,nT but a dual-transition
-estimate by only \ClockDualBias{}\,nT. To spoof the dual-transition sensor, the attacker must
-inject a precise differential offset on two tones. This is an algebraic capability bound, not a
-demonstrated defense, and a single-transition sensor still needs an external reference.
+\textbf{Secret timing stops only precomputed phase attacks.} A phase actuator imitates a field
+change only if it applies $\delta\phi_k=-\gamma\Delta B\,t_k$ with the true interrogation time.
+If the defender draws each $t_k$ secretly, an attacker that committed to a table built for public
+nominal times $t_{\rm nom}$ leaves a residual phase $\gamma\Delta B\,(t_{\rm nom}-t_k)$ that varies
+from setting to setting. No single field value then explains all settings, and a likelihood test
+on held-out settings detects the misfit. A frequency offset needs no knowledge of $t_k$, because the
+extra phase grows with time automatically. Secret timing therefore does not help against it.
 
-\section{Reference-Assisted Verification}
+\textbf{Dual-transition driving cancels common clock errors.} The NV ground state offers a
+hardware defense. It has two microwave transitions, $m_s=0\to+1$ and $m_s=0\to-1$, whose
+frequencies move in opposite directions when the field changes:
+$\omega_\pm=D\pm\gamma(B_0+B)$, where $D\approx2.87$\,GHz is the zero-field splitting and $B_0$
+the bias field. A clock error, by contrast, shifts both drive tones in the same direction. Differencing the two measured detunings keeps $2\gamma(B_0+B)$ and cancels offsets common to both
+tones, including drifts of $D$~\cite{fang2013quantumbeats,bauch2018ultralong,hart2021dq}. A fractional clock
+error $\epsilon$ scales both tones. At $\epsilon=1$\,ppm and $B_0=10$\,mT it biases a
+single-transition estimate by about \ClockSingleBias{}\,nT but a dual-transition estimate by only
+\ClockDualBias{}\,nT. To spoof the dual-transition sensor, the attacker must inject a precise
+differential offset on two tones. This is an algebraic capability bound, not a demonstrated
+defense. A single-transition sensor therefore needs help from outside the chain; how much can an external
+reference provide?
+
+\section{Can a Reference Sensor Restore the Estimate?}
 \label{sec:reference}
 
-\textbf{Architecture.} Each sequence splits its settings into an estimation set, on which the
-maximum-likelihood estimate $\Bhat$ is fitted, and a verification set, on which the negative
-log-likelihood score $S_N$ is computed. A second score, $S_R=|\Bhat-R|$, compares the primary
-estimate with the reference, modeled as
+\textbf{Two checks raise the alarm.} Each sequence splits its settings into an estimation set, on
+which the maximum-likelihood estimate $\Bhat$ is fitted, and a verification set. The first check,
+$S_N$, is the negative log-likelihood of the verification counts under $\Bhat$; it grows when the
+data do not fit a single field. The second check, $S_R=|\Bhat-R|$, compares the primary estimate
+with the reference reading. The defender first fixes a false-alarm budget $\alpha$, the fraction of
+clean sequences allowed to raise an alarm; we use $\alpha=1\%$. Each check receives half of the
+budget: its threshold is set so that only a fraction $\alpha/2$ of its scores on clean calibration
+sequences lie above it~\cite{angelopoulos2023conformal}. The alarm fires when either check exceeds
+its threshold, so on clean data it fires on at most $\alpha$ of sequences. We call the discrepancy
+threshold $\kappa$.
+
+\textbf{The reference is only useful if it is isolated.} Ideally, the reference measures the same
+field through its own electronics, so the attack cannot reach it. In practice, it may share a clock
+or synthesizer with the primary sensor, or carry an uncorrected calibration offset. This matters
+because whatever the reference shares with the primary chain, the attacker can shift too. We model
+the reading as
 \begin{equation}
  R=B+b_R+\lambda\Delta B+\varepsilon,\qquad \varepsilon\sim\mathcal N(0,\sigma_R^2),
  \label{eq:reference}
 \end{equation}
-where a bias $b_R$ and a coupling $\lambda$ describe imperfect isolation ($b_R=\lambda=0$ for an
-independent reference). The alarm fires when either score exceeds its threshold; each threshold is a quantile of clean
-calibration scores at level $\alpha/2$, so the clean false-alarm rate targets
-$\alpha=1\%$~\cite{angelopoulos2023conformal}. We compare four output policies built on this
-combined alarm: \emph{fallback} releases $R$ on alarm and $\Bhat$ otherwise;
-\emph{abstention} releases $\Bhat$ only without alarm; \emph{always-reference} ignores the primary
-sensor; and \emph{fusion} rules combine $\Bhat$ and $R$ continuously.
+where $\sigma_R$ is the reference noise, $b_R$ a calibration offset, and $\lambda$ the fraction of
+the spoof $\Delta B$ that also reaches the reference. An independent reference has $b_R=\lambda=0$.
+A second NV sensor driven from the same clock has $\lambda=1$.
 
-\textbf{The reference sets a floor.} A fallback release is harmless only if an accepted $\Bhat$ or
-a substituted $R$ is accurate. When the spoof makes $\Bhat$ harmful, only the second case remains,
-so fallback harm is at least the reference's own harm, whatever the alarm rule. The same holds
-in the worst case for every fusion rule of the form $Y=R+g(\Bhat-R)$, which includes fallback,
-inverse-variance weighting and clipping. For a Gaussian reference and a primary error that does
-not depend on the field, when the attacker may choose the spoof size $\Bhat$
-carries no usable information about $B$, and worst-case harm cannot fall below the reference
-floor $2\Phi(-\epsilon_H/\sigma_R)$.
+\textbf{Output policies.} Once the alarm is decided, the decision stage chooses what to release.
+\emph{Fallback} releases $R$ on alarm and $\Bhat$ otherwise. \emph{Abstention} releases $\Bhat$
+only without an alarm and releases nothing otherwise. \emph{Always-reference} ignores the primary
+sensor. \emph{Fusion} rules blend the two sensors instead of switching. Inverse-variance fusion
+releases $R+w(\Bhat-R)$ with $w=\sigma_R^2/(\sigma_R^2+\sigma_P^2)$, weighting each sensor by its
+precision, where $\sigma_P$ is the primary sensor's clean error. Gated fusion uses fallback on alarm
+and inverse-variance fusion otherwise. Clipped fusion releases $R+\mathrm{clip}(\Bhat-R,\pm\kappa)$,
+so it follows the primary sensor only within the alarm threshold. Which of these policies limits
+harm under attack?
 
-\textbf{Design equation.} For a spoof $d>h=\epsilon_H$ with an ideal primary estimate
-$\Bhat=B+d$, a reference shift $s=b_R+\lambda d$ and discrepancy threshold $\kappa$, fallback harm is
+\textbf{The reference sets a floor.} A fallback release is harmless only if the released sensor is
+accurate. When the spoof makes $\Bhat$ harmful, only a released, accurate $R$ can avoid harm, so
+fallback harm is at least the reference's own harm rate, whatever the alarm rule. For an
+independent reference with Gaussian noise, that rate is $2\Phi(-\epsilon_H/\sigma_R)$, where
+$\Phi$ is the standard normal cumulative distribution function. This is the probability that the
+reference alone misses the true field by more than $\epsilon_H$. The same floor limits every fusion
+rule of the form $Y=R+g(\Bhat-R)$, which includes all rules above. If the attacker may choose the
+spoof size freely, $\Bhat$ carries no usable information about $B$, and worst-case harm cannot fall
+below the floor. A floor is only a lower bound, though. How close does fallback get to it?
+
+\textbf{Design equation.} Assume the spoof shifts the primary estimate by exactly $d>h$, with
+$h=\epsilon_H$, and neglect the primary sensor's own noise, which is small next to the reference's.
+The reference then reads $R=B+s+\varepsilon$ with shift $s=b_R+\lambda d$. Harm arises in two
+disjoint ways, which give the two terms of
 \begin{equation}
  H_F(d)=P(|s+\varepsilon|>h)+P\bigl(|s+\varepsilon|\le h,\ |d-s-\varepsilon|\le\kappa\bigr).
  \label{eq:closed}
 \end{equation}
-The first term is the reference floor; the second counts accurate references that fail to raise
-the alarm, so the spoofed $\Bhat$ is released. For an independent reference ($s=0$) and ignoring the likelihood alarm, harm is $1$
-in a \emph{blind window} $h<d\le\kappa-h$, falls in $\kappa-h<d<\kappa+h$, and reaches the floor for
-$d\ge\kappa+h$. With primary noise $\sigma_P$, the calibrated threshold is approximately
+The first term covers an inaccurate reference: the released value is harmful whether or not the
+alarm fires, because both sensors are wrong. The second term covers an accurate reference that
+still leaves the discrepancy $|\Bhat-R|$ below $\kappa$. No alarm fires, so the spoofed $\Bhat$ is
+released.
+
+For an independent reference ($s=0$), the discrepancy is close to $d$, and the second term
+separates three regimes of spoof size:
+\begin{itemize}
+\item \emph{Blind window}, $h<d\le\kappa-h$. The spoof is large enough to be harmful but too small
+to push an accurate reference past the threshold. Every accurate reference is silent, so harm
+is 1.
+\item \emph{Transition region}, $\kappa-h<d<\kappa+h$. The alarm fires for some reference noise
+values and not others, so harm falls as $d$ grows. This region matters because moderate spoofs
+land here and are only partly caught.
+\item \emph{Floor}, $d\ge\kappa+h$. Every accurate reference raises the alarm, so only the first
+term remains.
+\end{itemize}
+The threshold follows from the reference and primary noise. Because the discrepancy can deviate in
+either direction, its check is two-sided: the budget $\alpha/2$ is split equally between large
+positive and large negative discrepancies. This gives
 \begin{equation}
  \kappa\approx z_{1-\alpha/4}\sqrt{\sigma_R^2+\sigma_P^2},
  \label{eq:kappa}
 \end{equation}
-with $z_{1-\alpha/4}=\TheoryZ$ for a two-sided test at level $\alpha/2$. The blind window exists
-when $\kappa>2h$; at $\sigma_R=20$\,nT it spans 25 to \TheoryBlindUpper\,nT. For
-$\sigma_P\approx\TheorySigmaPrimary$\,nT this happens once $\sigma_R>\TheorySigmaCritical$\,nT, which
-turns Eqs.~\eqref{eq:closed} and~\eqref{eq:kappa} into a sizing rule for the reference sensor.
+where $z_{1-\alpha/4}=\TheoryZ$ is the standard normal quantile. The blind window exists whenever
+$\kappa>2h$. With the simulated primary noise $\sigma_P\approx\TheorySigmaPrimary$\,nT, this happens
+once $\sigma_R>\TheorySigmaCritical$\,nT. At $\sigma_R=20$\,nT, spoofs from 25 to
+\TheoryBlindUpper\,nT pass unnoticed. Equations~\eqref{eq:closed} and~\eqref{eq:kappa} thus become a
+sizing rule for the reference. The next section tests them.
 
 \section{Evaluation}
 \label{sec:eval}
 
-\textbf{Setup.} We simulate the Ramsey model of Eq.~\eqref{eq:ramsey} with $\Ttwo=100\,\mu$s,
-$\eta=0.1$, five nominal times from 5 to 60\,$\mu$s or secret times drawn uniformly in that
-range, two analysis phases, and 1000 shots per setting (20 settings per sequence). Fields are
-drawn from $[0,1.9]\,\mu$T, the nominal reference has $\sigma_R=20$\,nT, and the nominal spoof
-is 100\,nT. Thirty independently seeded pipelines each calibrate their own thresholds and attacker
-tables and evaluate 512 clean/attacked pairs per condition, \TotalN{} attempts in total.
-Policies, conditions, endpoints and seeds were fixed and time-stamped before a single evaluation
-run. Intervals are 95\% bootstrap intervals obtained by resampling the 30 pipelines. The closed-form comparison and
-the fusion replay were added after the run and are reported as post-hoc analyses.
+\textbf{Data sources.} Every result comes from a single simulation run whose cases, policies,
+endpoints and random seeds were fixed and time-stamped before it ran, which we call the frozen run.
+Two analyses were added afterwards and are marked post hoc. One is the comparison of
+Eq.~\eqref{eq:closed} with the observations in Fig.~\ref{fig:theory}. The other is the fusion
+replay in Table~\ref{tab:fusion}, which evaluates additional output rules on the stored per-attempt
+records of the frozen run without new simulation. The two-level equivalence check, the spin-1
+simulation and the clock arithmetic of Sections~\ref{sec:intro}--\ref{sec:primary} are separate
+calculations.
 
-\textbf{Attack capability.} With a public, fixed schedule, a precomputed phase attack reaches its
-target undetected on \FixedU{} of \TotalN{} attempts; with secret interrogation times it succeeds
-on \HiddenU{}. A phase table optimized against the secret schedule shifts the estimate in
-\OptimizedT{} attempts but passes the verifier in only \OptimizedU{}; this is a lower bound on
-attacker capability, since the search is finite. A drive-frequency offset succeeds undetected on
-\FrequencyU{} of \TotalN{} attempts even with secret timing, and simulated count distributions
-match the field-shifted ones to within $\EquivalenceError$.
+\textbf{Setup.} The run simulates the model of Eq.~\eqref{eq:ramsey} with $\Ttwo=100\,\mu$s,
+$\eta=0.1$, two analysis phases, and 1000 shots per setting, for 20 settings (20{,}000 shots) per
+sequence. Fields are drawn uniformly from $[0,1.9]\,\mu$T. The defender uses one of three schedules,
+each evaluated as a separate case so that the benefit of secrecy can be isolated. The first is a
+fixed public schedule of five nominal times from 5 to 60\,$\mu$s. The second adds random analysis
+phases. The third draws secret times uniformly from 5 to 60\,$\mu$s at every setting. The run
+contains 20 cases. Attack cases vary the actuator (phase or frequency), the schedule, and the
+attacker's knowledge of the actual times. Reference-stress cases vary $\sigma_R\in\{5,15,50\}$\,nT,
+add a 10\,nT offset or a shared fraction $\lambda\in\{0.5,1\}$, or shrink the spoof to 50\,nT.
+Control cases include no attack, a genuine 100\,nT field change, and uncalibrated readout drift.
+Thirty independently seeded pipelines each calibrate their own thresholds and attacker tables and
+simulate 512 clean/attacked pairs per case, giving \TotalN{} attempts per case and condition.
+Intervals are 95\% bootstrap intervals over the 30 pipelines. Unless stated otherwise, results
+refer to the \emph{nominal configuration}: a 100\,nT frequency spoof, $\sigma_R=20$\,nT, and
+thresholds calibrated at $\alpha=1\%$.
 
-\textbf{Fallback reaches the reference floor.} At the nominal operating point, combined fallback
-releases a harmful estimate on \NominalHarmRate\% [\NominalHarmCI] of attacks, identical to
-always-reference; this rate is the reference's own error at $\sigma_R=20$\,nT, not an effect the
-alarm can remove. A 50\,nT spoof lies in the transition region and raises harm to
-\SmallHarmRate\%. A noisier reference with $\sigma_R=50$\,nT widens $\kappa$ until the 100\,nT spoof
-falls inside the blind window: fallback harm rises to \WeakHarmRate\%, worse than the reference
-alone (\WeakReferenceHarmRate\%). A precise reference with $\sigma_R=5$\,nT removes harm entirely.
-Fig.~\ref{fig:theory} shows that Eq.~\eqref{eq:closed}, evaluated with the calibrated thresholds
-and no fitting to attack data, matches all \TheoryConditions{} tested conditions ($\sigma_R\in\{5,15,20,50\}$\,nT, a 50\,nT spoof,
-a 10\,nT reference bias, and $\lambda\in\{0.5,1\}$) within \TheoryMaxGap{} percentage points.
+\textbf{Secret timing stops phase tables but not frequency offsets.} Table~\ref{tab:capability} reports how often each attack reaches its 100\,nT target without an
+alarm, using only the likelihood check. Each row pairs an attack with the defender's schedule.
+In the disclosure rows, the attacker learns each actual time either before the 2\,$\mu$s its
+actuator needs to apply the phase (timely) or after it (late); full knowledge gives the time
+immediately. Mean-time and zero-offset tables are simple baselines for the optimized table. A nominal-time phase
+attack succeeds on \FixedU{} of \TotalN{} attempts against the fixed schedule but on only
+\HiddenU{} against secret times. Randomizing the analysis phase alone does not help, because the
+attacker simply adds its offset to whatever phase is used. The attacker's strongest option against
+secret times is a precommitted phase table: one phase offset per public nominal-time slot, chosen
+by numerical optimization (differential evolution) on simulated data to shift the estimate while
+still fitting the verifier. It shifts the estimate in \OptimizedT{} attempts but passes the verifier
+in only \OptimizedU{}; since the search is finite, this is a lower bound on what a phase attacker
+can do. A drive-frequency offset needs no schedule knowledge and succeeds on \FrequencyU{} of
+\TotalN{} attempts even against secret times, with simulated count distributions matching the
+field-shifted ones to within $\EquivalenceError$. With the primary sensor blind to this attack,
+everything rests on the reference.
+
+\begin{table}[t]
+\centering
+\caption{Attack capability against the likelihood check alone (frozen run, \TotalN{} attacked
+attempts per row). Target: estimate shifted by 100\,nT. Undetected: target reached without alarm. Detuning:
+drive-frequency offset.}
+\label{tab:capability}
+\footnotesize
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Attack / defender schedule & Target & Undetected \\
+\midrule
+\input{tables/confirmation_capability.tex}
+\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fallback reaches the floor, and the design equation predicts it.} In the nominal
+configuration, fallback releases a harmful estimate on \NominalHarmRate\% [\NominalHarmCI] of
+attacks, the same rate as always-reference. This is the reference's own error rate at
+$\sigma_R=20$\,nT, so no alarm rule can remove it. The design equation reproduces this and every
+other tested condition without fitting to attack data. Evaluated with the calibrated thresholds, it agrees with the observations within \TheoryMaxGap{} percentage points in all
+\TheoryConditions{} reference conditions of the setup (Fig.~\ref{fig:theory}). The equation also explains the failures.
+A 50\,nT spoof falls in the transition region and raises harm to \SmallHarmRate\%. A noisier
+reference with $\sigma_R=50$\,nT widens $\kappa$ until even the 100\,nT spoof sits in the blind window,
+and fallback harm rises to \WeakHarmRate\%, worse than the reference alone
+(\WeakReferenceHarmRate\%). A precise reference with $\sigma_R=5$\,nT removes harm entirely. Reference
+precision is one hardware requirement; isolation is the other.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/reference_theory.pdf}
-\caption{Fallback harm versus spoof size predicted by Eq.~\eqref{eq:closed} for three reference
-noise levels (lines), their reference floors (dashed) and simulated observations with 95\%
-intervals (circles). Shading: blind window at $\sigma_R=20$\,nT, where small spoofs are released
-without alarm.}
+\caption{Fallback harm versus spoof size predicted by Eq.~\eqref{eq:closed} (post hoc) for three
+reference noise levels (lines), their reference floors (dashed), and frozen-run observations with
+95\% intervals (circles). Shading: blind window at $\sigma_R=20$\,nT, spoofs from 25 to
+\TheoryBlindUpper\,nT that are harmful yet too small to trigger the discrepancy alarm.}
 \label{fig:theory}
 \end{figure}
 
-\textbf{Shared hardware defeats the reference.} Table~\ref{tab:audit} maps shared dependencies to
-Eq.~\eqref{eq:reference}. A 10\,nT reference offset raises harm to \ObsBiasHarmRate\%; partial
-coupling ($\lambda=0.5$) raises it to \HalfHarmRate\%. A reference that inherits the full spoof,
-as a second NV sensor on the same clock would, releases harmful estimates on \FullHarmRate\% of
-attacks, while alarms fire on only \FullAlarmRate\% because both channels move together.
+\textbf{A shared clock defeats the reference.} Each departure from isolation in
+Eq.~\eqref{eq:reference} raises harm, as Table~\ref{tab:audit} shows. A 10\,nT reference offset
+raises it to \ObsBiasHarmRate\%, and partial coupling ($\lambda=0.5$) to \HalfHarmRate\%. A reference
+that inherits the full spoof, as a second NV sensor on the same clock would, releases harmful
+estimates on \FullHarmRate\% of attacks. Its alarm fires on only \FullAlarmRate\% of them, because
+both sensors move together and never disagree.
 
 \begin{table}[t]
 \centering
-\caption{Reference dependency audit: harmful releases of combined fallback under a 100\,nT spoof,
-$\sigma_R=20$\,nT.}
+\caption{Reference dependency audit (frozen run): harmful releases of fallback under a 100\,nT
+spoof, $\sigma_R=20$\,nT.}
 \label{tab:audit}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -286,28 +387,33 @@ Shared data path/software & attacker rewrites $R$ & out of scope \\
 \end{tabular}
 \end{table}
 
-\textbf{Precision, availability and cost.} Table~\ref{tab:fusion} compares output rules replayed on
-the stored per-attempt records. Fallback's only advantage over always-reference is clean
-precision: RMSE falls from \ReferenceCleanRMSE{} to \FallbackCleanRMSE\,nT (paired difference
-\CleanDifference\,nT, interval [\CleanDifferenceCI] adjusted for multiple comparisons), bought with 20{,}000 primary shots per estimate.
-Inverse-variance fusion is the most precise rule on clean data, but it weights the compromised
-primary sensor heavily and releases a harmful estimate on every attack. Every rule other than
-always-reference has a worst case far above the reference floor, which is only a lower bound. Abstention lowers
-harm by \ObsPFourDiff{} percentage points only by releasing almost nothing: coverage under attack
-drops by \ObsPFiveDiff{} points, all \AbstainAttackH{} released outputs are harmful, and each
-release costs \AbstainShotsMillions{} million primary shots. Clean false alarms occur at
-\CleanAlarmRate\% [\CleanAlarmCI], close to the 1\% target, and a genuine 100\,nT field change raises only \GenuineAlarmCount{} alarms in
-\TotalN{} attempts because both sensors see it. Finally, if reference errors are independent from
-reading to reading, averaging \TheoryAvgReadings{} readings gives $\sigma_R=\TheoryAvgSigma$\,nT,
-matching fallback's clean precision with a floor of \TheoryAvgFloor\%, so fallback is worthwhile
-only when primary shots are much cheaper than reference readings or low-frequency drift prevents
-averaging.
+\textbf{What fallback, abstention and fusion buy.} If fallback cannot beat the reference under
+attack, why use the primary sensor at all? The answer is clean precision. Without attack, fallback
+releases the primary estimate most of the time, and its RMSE is \FallbackCleanRMSE\,nT, against
+\ReferenceCleanRMSE\,nT for always-reference. The paired difference is \CleanDifference\,nT, with an
+interval of [\CleanDifferenceCI] adjusted for multiple comparisons. This precision costs 20{,}000
+primary shots per estimate. The fusion replay in Table~\ref{tab:fusion} shows the price of pushing
+precision further. Inverse-variance fusion is the most precise rule on clean data, but it trusts
+the precise, compromised primary sensor and releases a harmful estimate on every attack. Gated and
+clipped fusion fall in between, and every rule except always-reference has a worst case far above
+the reference floor, which is only a lower bound.
+
+Abstention trades availability for harm. It lowers harm by \ObsPFourDiff{} percentage points
+relative to fallback, but only by releasing almost nothing: coverage under attack drops by
+\ObsPFiveDiff{} points. All \AbstainAttackH{} outputs it still releases are harmful, and each
+release costs \AbstainShotsMillions{} million primary shots. Without attack, the alarm fires on
+\CleanAlarmRate\% [\CleanAlarmCI] of sequences, close to the 1\% budget. A genuine 100\,nT field
+change raises only \GenuineAlarmCount{} alarms in \TotalN{} attempts, because both sensors see it.
+
+Averaging the reference is a cheaper route to precision if its errors are independent:
+\TheoryAvgReadings{} readings give $\sigma_R=\TheoryAvgSigma$\,nT, matching fallback's clean precision
+with a floor of \TheoryAvgFloor\%. Fallback pays off only when primary shots are much cheaper than
+reference readings or drift prevents averaging.
 
 \begin{table}[t]
 \centering
-\caption{Output rules replayed on the frozen per-attempt records, $\sigma_R=20$\,nT. Gated:
-reference on alarm, else inverse-variance fusion. Clipped: $R+\mathrm{clip}(\Bhat-R,\pm\kappa)$.
-Worst case: model maximum over spoofs of 0--300\,nT.}
+\caption{Output rules replayed post hoc on the frozen per-attempt records, $\sigma_R=20$\,nT (rules
+defined in Section~\ref{sec:reference}). Worst case: model maximum over spoofs of 0--300\,nT.}
 \label{tab:fusion}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -325,54 +431,48 @@ Rule & RMSE (nT) & 100\,nT & 50\,nT & case (\%) \\
 \section{Design Rules and Limitations}
 \label{sec:rules}
 
-Table~\ref{tab:hw} maps each countermeasure to what it stops and the hardware it needs; the results
-reduce to four rules for sensor designers. First, match the defense to the actuator: secret timing
-costs only scheduler logic and stops precomputed phase attacks, but not frequency offsets. Second,
-size the reference to the application's tolerance, not to the detector's alarm rate: for a 25\,nT
-tolerance the reference noise must stay below \TheorySigmaCritical\,nT, or small spoofs pass through
-the blind window. Third, audit the reference for shared clocks, synthesizers and data paths, since
-a shared clock turns the reference into a second victim. Fourth, prefer drive schemes that address
-both spin transitions, which cancel common clock errors at the cost of a second tone. Integrity
-monitoring in satellite navigation follows the same logic of separating fault detection from fault
-exclusion~\cite{brown1992raim,psiaki2016gnss}.
+The results reduce to four rules for sensor designers, listed with their hardware cost in
+Table~\ref{tab:hw}. Match the defense to the actuator, since secret timing stops phase tables but
+not frequency offsets. Size the reference to the application's tolerance rather than to the alarm
+rate. Audit the reference for shared clocks, synthesizers and data paths. Prefer drive schemes that
+address both spin transitions.
 
 \begin{table}[t]
 \centering
-\caption{Countermeasures, what they stop, and their hardware cost (from Sections~\ref{sec:primary}--\ref{sec:eval}).}
+\caption{Countermeasures, what they stop, and their hardware cost (from
+Sections~\ref{sec:primary}--\ref{sec:eval}).}
 \label{tab:hw}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.25\columnwidth}>{\raggedright\arraybackslash}p{0.37\columnwidth}>{\raggedright\arraybackslash}p{0.32\columnwidth}@{}}
 \toprule
 Countermeasure & Stops & Hardware cost \\
 \midrule
 Secret interrogation timing & Precomputed phase attacks (\HiddenU{} of \TotalN{} succeed); not frequency offsets & Randomized scheduler; no added hardware \\
-Dual-transition drive & Common clock/synthesizer errors (\ClockSingleBias{} to \ClockDualBias{}\,nT per ppm, analytic) & Second tone: extra synthesizer channel or IQ sideband \\
-Independent reference with fallback & Frequency offsets, down to the reference's own error rate & Second sensor, own clock, $\sigma_R<\TheorySigmaCritical$\,nT for a 25\,nT tolerance \\
+\addlinespace[4pt]
+Dual-transition drive & Common clock and synthesizer errors (\ClockSingleBias{} to \ClockDualBias{}\,nT per ppm, analytic) & Second tone: extra synthesizer channel or IQ sideband \\
+\addlinespace[4pt]
+Independent reference with fallback & Frequency offsets, down to the reference's own error rate & Second sensor with its own clock; $\sigma_R<\TheorySigmaCritical$\,nT for a 25\,nT tolerance \\
+\addlinespace[4pt]
 Dependency audit & Shared-clock failure (\FullHarmRate\% harm otherwise) & Separate clock, synthesizer and data path \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-All results are from simulation. The reference is an abstract Gaussian channel without drift,
-bandwidth or alignment effects; the attacker is modeled at the level of frequency and phase
-offsets rather than as a circuit-level synthesizer or clock model; the attacker's phase-table
-search is finite; and the 30 pipelines replicate sampling and calibration variance within one
-code base.
+These rules rest on simulation. The reference is an abstract Gaussian channel without drift,
+bandwidth or alignment effects. The attacker is modeled as frequency and
+phase offsets rather than as a circuit-level synthesizer or clock. The attacker's phase-table search
+is finite. The 30 pipelines replicate sampling and calibration variance within one code base.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-A single-transition NV Ramsey magnetometer cannot tell a sub-ppm microwave drive offset from a
-real field change, so its integrity depends on hardware outside the spin. An independent reference
-can detect the attack, but under attack its own error rate is the best that fallback can achieve,
-and a noisy
-reference opens a blind window in which small spoofs pass unnoticed. The closed-form design
-equation, which matches the simulation, lets designers size the reference to the
-application's tolerance, and a dependency audit shows that sharing a clock with the primary
-sensor removes the protection entirely. Future work will simulate dual-transition sensors under
-two-tone attacks, model the clock and synthesizer at circuit level, and demonstrate drive spoofing
-and reference-assisted verification on NV hardware.
+A single-transition NV Ramsey magnetometer cannot tell a sub-ppm drive offset from a real field
+change, so its integrity depends on hardware outside the spin. A reference sensor restores it only
+down to the reference's own error rate, only if it is precise enough to close the blind window, and
+only if it shares no clock with the primary sensor. Future work will model the clock and synthesizer at circuit level, simulate two-tone attacks on
+dual-transition sensors, and test both defenses on NV hardware.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
