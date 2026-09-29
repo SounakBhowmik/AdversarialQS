@@ -44,7 +44,7 @@ points = ["reference_noise_15nT", "time_frequency", "reference_noise_50nT", "fre
 
 plt.rcParams.update({"font.size": 8, "pdf.fonttype": 42, "axes.spines.top": False,
                      "axes.spines.right": False})
-fig, ax = plt.subplots(figsize=(3.5, 2.3), layout="constrained")
+fig, ax = plt.subplots(figsize=(3.5, 2.2), layout="constrained")
 grid = np.linspace(25.5, 170, 700)
 color_of = {}
 for case, sigma, color in curves:
