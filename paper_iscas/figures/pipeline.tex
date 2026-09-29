@@ -1,0 +1,30 @@
+% Native TikZ source: no external renderer or shell-escape required.
+\begin{tikzpicture}[
+  block/.style={draw,rounded corners=2pt,align=center,font=\small,
+                minimum height=0.85cm,text width=2.15cm,fill=white},
+  flow/.style={-{Latex[length=2mm]},thick},
+  metadata/.style={flow,dashed,blue!65!black},
+  note/.style={font=\scriptsize,align=center},
+  x=1cm,y=1cm]
+\node[block] (scheduler) at (0,0) {Trusted scheduler\\intended $t_k,\phi_k$};
+\node[block,draw=red!65!black,fill=red!4] (control) at (3.05,0)
+  {Applied controls\\phase / detuning};
+\node[block] (sensor) at (6.1,0) {Single-transition NV\\counts $\mathbf Z$};
+\node[block] (inference) at (9.15,0) {Fit $\mathcal E$; score $\mathcal V$\\$\widehat B, S_N$};
+\node[block] (decision) at (12.2,0) {Decision and output\\accept / fallback / abstain};
+\node[block,draw=red!65!black,fill=red!4] (attacker) at (3.05,1.65)
+  {Attacker\\permitted view only};
+\node[block] (field) at (6.1,-1.65) {Physical field $B$\\hidden from inference};
+\node[block] (reference) at (9.15,-1.65) {Auxiliary sensor\\measured reference $R$};
+\draw[flow] (scheduler) -- (control);
+\draw[flow] (control) -- (sensor);
+\draw[flow] (sensor) -- (inference);
+\draw[flow] (inference) -- (decision);
+\draw[flow,red!65!black] (attacker) -- (control);
+\draw[flow] (field) -- (sensor);
+\draw[flow] (field) -- (reference);
+\draw[flow] (reference.east) -| (decision.south);
+\draw[metadata] (scheduler.north) -- (0,2.5) -- (9.15,2.5) -- (inference.north);
+\node[note,text=blue!65!black] at (7,2.72) {Protected intended-command record};
+\node[note] at (9.15,-2.43) {Separate trusted measurement path is assumed, not hardware-validated};
+\end{tikzpicture}
