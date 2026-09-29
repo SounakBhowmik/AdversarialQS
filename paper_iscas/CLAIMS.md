@@ -30,6 +30,8 @@ Status: S = supported, P = partially supported (scope stated), X = not claimable
 | C20 | Blind window at sigma_R = 20 nT spans 25 to `\TheoryBlindUpper` nT | `theory_values.tex` | S (model) |
 | C21 | Residual detectable only after >= `\DetectSequencesNominal` sequences at 10 mT (`\DetectSequencesWorst` at 5 mT), ideal matched test, 50% power, alpha 1% | `scripts/iscas_values.py` from `data/spin1_equivalence.json` | P (max over 8 sampled settings; assumes residual stays at that level) |
 | C22 | Countermeasure hardware costs (Table III) | design consequences of Sections III-V; no external specs cited | S (qualitative) |
+| C23 | 20,000 shots ~ `\PrecessionSeconds` s of free precession per estimate with secret times (mean 32.5 us), excluding init/readout | `scripts/iscas_values.py` arithmetic | S (arithmetic; overheads not modeled) |
+| C24 | Floor holds for translation-equivariant rules Y = R + g(Bhat - R) under unbounded spoof, Gaussian reference independent of spoof, location-model primary error, no field prior | long paper Theorem 1 (`main_long.tex`) | S (analytic; proof omitted in short version) |
 | X1 | Any hardware / experimental NV result | none | X: simulation only, must be stated |
 | X2 | Dual-transition sensing is secure | algebraic bound only | X: state as capability bound + future work |
 | X3 | "Pre-registered" in the external sense | local timestamped freeze | X: say "frozen, timestamped protocol" |

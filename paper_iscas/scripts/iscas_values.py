@@ -41,6 +41,10 @@ def thousands(n):
     return f"{n:,}".replace(",", "{,}")
 
 
+SHOTS = 1000
+SECRET_MEAN_US = (5 + 60) / 2  # secret times uniform on [5, 60] us
+precession_s = SETTINGS_PER_SEQ * SHOTS * SECRET_MEAN_US * 1e-6  # free precession per estimate
+
 worst = settings_needed(spin["max_population_difference"])
 nominal = settings_needed(by_bias[10])
 values = {
@@ -54,6 +58,7 @@ values = {
     "DetectSequencesWorst": thousands(math.ceil(worst / SETTINGS_PER_SEQ)),
     "DetectSettingsNominal": thousands(nominal),
     "DetectSequencesNominal": thousands(math.ceil(nominal / SETTINGS_PER_SEQ)),
+    "PrecessionSeconds": f"{precession_s:.2f}",
 }
 
 assert abs(offset_hz - 2802.5) < 1 and round(single_bias_nT) == 112  # consistent with long paper
